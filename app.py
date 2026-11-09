@@ -17,7 +17,7 @@ from pcs_tool.export import (APP_VERSION, checks_df, detailed_df, from_json, inp
                              to_excel, to_json)
 from pcs_tool.model import (CASES, DERATING_ROWS, INPUTS, Result, calculate, default_derating, default_inputs)
 
-st.set_page_config(page_title="BESS PCS Sizing Tool", page_icon="⚡", layout="wide")
+st.set_page_config(page_title="PGR_BESS PCS Sizing Tool", page_icon="⚡", layout="wide")
 
 # ----------------------------------------------------------------------------------------- auth
 auth.login_page()  # stops here until the user is signed in
