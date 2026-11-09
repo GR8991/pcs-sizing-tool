@@ -26,7 +26,26 @@ auth.login_page()  # stops here until the user is signed in
 st.markdown(
     """
     <style>
-    .block-container {padding-top: 1.6rem;}
+    /* ---- sticky professional header ---- */
+    .block-container {padding-top: 4rem;}
+    [data-testid="stElementContainer"]:has(.pcs-header), div.element-container:has(.pcs-header)
+        {position: sticky; top: 3.75rem; z-index: 990;}
+    .pcs-header {height: 72px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between;
+        gap: 1rem; padding: 0 1.25rem; background: linear-gradient(90deg, #14284B 0%, #1F3864 55%, #2E5597 100%);
+        border-bottom: 3px solid #C55A11; border-radius: 6px; box-shadow: 0 4px 14px rgba(20, 40, 75, .22); overflow: hidden;}
+    .pcs-brand {display: flex; align-items: center; gap: .85rem; min-width: 0;}
+    .pcs-logo {flex: 0 0 auto; width: 42px; height: 42px; border-radius: 8px; background: rgba(255,255,255,.12);
+        display: flex; align-items: center; justify-content: center;}
+    .pcs-title {color: #fff; font-size: 1.35rem; font-weight: 700; letter-spacing: .01em; line-height: 1.15; white-space: nowrap;}
+    .pcs-sub {color: #C9D6EC; font-size: .8rem; letter-spacing: .03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+    .pcs-meta {display: flex; align-items: center; gap: 1.4rem; min-width: 0;}
+    .pcs-meta .item {display: flex; flex-direction: column; align-items: flex-start; min-width: 0;}
+    .pcs-meta .lbl {color: #9FB3D6; font-size: .66rem; text-transform: uppercase; letter-spacing: .09em;}
+    .pcs-meta .val {color: #fff; font-size: .85rem; font-weight: 600; max-width: 230px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+    @media (max-width: 1100px) {.pcs-meta .opt {display: none;} .pcs-sub {display: none;}}
+    /* keep the tab bar visible under the header */
+    .stTabs [data-baseweb="tab-list"] {position: sticky; top: calc(3.75rem + 72px); z-index: 980; background: #fff;
+        padding-top: .35rem; box-shadow: 0 1px 0 #E3E8F0;}
     .pill {display:inline-block; padding:2px 10px; border-radius:12px; font-weight:700; font-size:.82rem; white-space:nowrap;}
     .ok {background:#C6EFCE; color:#006100;} .bad {background:#FFC7CE; color:#9C0006;} .warn {background:#FFEB9C; color:#9C5700;}
     .neutral {background:#E7ECF5; color:#1F3864;}
@@ -147,8 +166,14 @@ with st.sidebar:
     safe = "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in st.session_state["project"])[:60] or "pcs"
     st.download_button("Save input set (JSON)", to_json(current_inputs(), st.session_state["derating"], st.session_state["project"]),
                        file_name=f"{safe}_inputs.json", mime="application/json", use_container_width=True)
-    st.download_button("Results workbook (Excel)", to_excel(res, st.session_state["auth_email"]), file_name=f"{safe}_PCS_results.xlsx",
-                       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
+    try:
+        xlsx = to_excel(res, st.session_state["auth_email"])
+    except Exception as exc:  # e.g. openpyxl missing - keep the app running, report the cause
+        xlsx = None
+        st.caption(f"Excel export unavailable ({type(exc).__name__}: {exc}). Check that requirements.txt is in the repo root.")
+    if xlsx is not None:
+        st.download_button("Results workbook (Excel)", xlsx, file_name=f"{safe}_PCS_results.xlsx",
+                           mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
     st.download_button("Results summary (CSV)", summary_df(res).to_csv(index=False), file_name=f"{safe}_summary.csv",
                        mime="text/csv", use_container_width=True)
     if res.rows:
@@ -157,7 +182,21 @@ with st.sidebar:
     st.caption(f"Version {APP_VERSION}")
 
 # ----------------------------------------------------------------------------------------- header
-st.title("BESS PCS Sizing Tool")
+_LOGO = ('<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" '
+         'stroke-linejoin="round"><rect x="3" y="6" width="15" height="12" rx="2"/><path d="M18 10h2v4h-2"/>'
+         '<path d="M11 8.5l-2.5 4h3l-2.5 4" stroke="#F4B183"/></svg>')
+st.markdown(
+    f'''<div class="pcs-header">
+      <div class="pcs-brand"><div class="pcs-logo">{_LOGO}</div>
+        <div><div class="pcs-title">BESS PCS Sizing Tool</div>
+        <div class="pcs-sub">Preliminary PCS sizing &amp; electrical suitability screening</div></div></div>
+      <div class="pcs-meta">
+        <div class="item opt"><span class="lbl">Project</span><span class="val">{html.escape(st.session_state["project"] or "-")}</span></div>
+        <div class="item"><span class="lbl">Overall result</span>{pill(overall)}</div>
+        <div class="item opt"><span class="lbl">Signed in</span><span class="val">{html.escape(st.session_state["auth_email"])}</span></div>
+      </div></div>'''.replace("\n", " "),
+    unsafe_allow_html=True,
+)
 st.markdown('<div class="banner"><b>Preliminary screening only - not design approval.</b> '
             "Results need confirmation by an AC load-flow study, vendor-certified P-Q-V-T capability and the project single-line diagram."
             + (" <b>The illustrative test data set is loaded.</b>" if current_inputs() == default_inputs() else "") + "</div>",
