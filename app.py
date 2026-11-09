@@ -17,7 +17,7 @@ from pcs_tool.export import (APP_VERSION, checks_df, detailed_df, from_json, inp
                              to_excel, to_json)
 from pcs_tool.model import (CASES, DERATING_ROWS, INPUTS, Result, calculate, default_derating, default_inputs)
 
-st.set_page_config(page_title="PGR_BESS PCS Sizing Tool", page_icon="⚡", layout="wide")
+st.set_page_config(page_title="BESS PCS Sizing Tool", page_icon="⚡", layout="wide")
 
 # ----------------------------------------------------------------------------------------- auth
 auth.login_page()  # stops here until the user is signed in
@@ -188,7 +188,7 @@ _LOGO = ('<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#f
 st.markdown(
     f'''<div class="pcs-header">
       <div class="pcs-brand"><div class="pcs-logo">{_LOGO}</div>
-        <div><div class="pcs-title">BESS PCS Sizing Tool</div>
+        <div><div class="pcs-title">PGR_BESS PCS Sizing Tool</div>
         <div class="pcs-sub">Preliminary PCS sizing &amp; electrical suitability screening</div></div></div>
       <div class="pcs-meta">
         <div class="item opt"><span class="lbl">Project</span><span class="val">{html.escape(st.session_state["project"] or "-")}</span></div>
